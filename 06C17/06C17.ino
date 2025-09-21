@@ -1,52 +1,30 @@
 #define LED 7
+unsigned long period, duty, second=1000000UL, highTime, lowTime, nowTime, startTime;
 
-unsigned long duty=0UL;
-unsigned long period=10000UL;
-
-void setup(){
+void setup() {
   pinMode(LED, OUTPUT);
 }
 
 void set_period(unsigned long p){
-  period=p;
-  bool direction=true;
-  unsigned long i=0UL;
-  
-  while(1){
-    duty=i;
-    set_duty(duty);
-
-    if(direction){
-      i++;
-      if(i>100UL){
-        i=100UL;
-        direction=false;
-      }
-    } 
-    else{
-      if(!i) break;
-      i--;
-    }
-  }
+  period=constrain(p, 100UL, 10000UL);
 }
 
-void set_duty(unsigned long d){
-  duty=d;
-  unsigned long hTime=(period*duty)/100UL;
-  unsigned long lTime=period-hTime;
-  
+void set_duty(unsigned long duty){
+  highTime=(period*duty)/100UL, lowTime=period-highTime;
   digitalWrite(LED, 1);
-  if(hTime>0){
-    delayMicroseconds(hTime);
-  }
+  if (highTime>0) delayMicroseconds(highTime);
   digitalWrite(LED, 0);
-  if(lTime>0){
-    delayMicroseconds(lTime);
-  }
+  if (lowTime>0) delayMicroseconds(lowTime);
 }
 
-void loop(){
+void loop() {
   set_period(10000UL);
   //set_period(1000UL);
   //set_period(100UL);
+  
+  startTime=micros();
+  while((micros()-startTime)<second){
+    nowTime=micros()-startTime, duty=((nowTime<(second/2UL))?nowTime:(second-nowTime))*100UL/(second/2UL);
+    set_duty(duty);
+  }
 }
